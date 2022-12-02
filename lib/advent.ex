@@ -17,7 +17,7 @@ defmodule Advent do
     {time, [p1, p2]} = :timer.tc(solvers[day])
 
     IO.puts("★★ Day #{day} ★★★★★")
-    IO.puts("★ https://adventofcode.com/2022/day/#{day})}")
+    IO.puts("★ https://adventofcode.com/2022/day/#{day}")
     IO.puts("Part 1: #{p1}")
     IO.puts("Part 2: #{p2}")
     IO.puts("★ Elapsed time: #{time} µs")
