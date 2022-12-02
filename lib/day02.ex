@@ -1,62 +1,54 @@
 defmodule Day02 do
   def solve do
-    pairs =
+    rounds =
       File.stream!("data/day_02.txt")
-      |> Enum.map(&String.split(String.trim(&1), " "))
+      |> Enum.map(&String.trim(&1))
+      |> Enum.map(&String.split(&1, " "))
+      |> Enum.map(&List.to_tuple(&1))
 
     [
-      pairs
-      |> Enum.map(&score/1)
+      rounds
+      |> Enum.map(&play/1)
       |> Enum.sum(),
-      pairs
+      rounds
       |> Enum.map(&pick/1)
       |> Enum.sum()
     ]
   end
 
-  def pick([them, me]) do
-    case [them, me] do
-      ["A", "X"] -> 3 + 0
-      ["B", "X"] -> 1 + 0
-      ["C", "X"] -> 2 + 0
-      ["A", "Y"] -> 1 + 3
-      ["B", "Y"] -> 2 + 3
-      ["C", "Y"] -> 3 + 3
-      ["A", "Z"] -> 2 + 6
-      ["B", "Z"] -> 3 + 6
-      ["C", "Z"] -> 1 + 6
+  @win 6
+  @draw 3
+  @loss 0
+
+  @rock 1
+  @paper 2
+  @scissors 3
+
+  def play(round) do
+    case round do
+      {"A", "X"} -> @rock + @draw
+      {"B", "X"} -> @rock + @loss
+      {"C", "X"} -> @rock + @win
+      {"A", "Y"} -> @paper + @win
+      {"B", "Y"} -> @paper + @draw
+      {"C", "Y"} -> @paper + @loss
+      {"A", "Z"} -> @scissors + @loss
+      {"B", "Z"} -> @scissors + @win
+      {"C", "Z"} -> @scissors + @draw
     end
   end
 
-  def rps([them, me]) do
-    case [them, me] do
-      ["A", "X"] -> :tie
-      ["B", "X"] -> :loss
-      ["C", "X"] -> :win
-      ["A", "Y"] -> :win
-      ["B", "Y"] -> :tie
-      ["C", "Y"] -> :loss
-      ["A", "Z"] -> :loss
-      ["B", "Z"] -> :win
-      ["C", "Z"] -> :tie
+  def pick(round) do
+    case round do
+      {"A", "X"} -> @scissors + @loss
+      {"B", "X"} -> @rock + @loss
+      {"C", "X"} -> @paper + @loss
+      {"A", "Y"} -> @rock + @draw
+      {"B", "Y"} -> @paper + @draw
+      {"C", "Y"} -> @scissors + @draw
+      {"A", "Z"} -> @paper + @win
+      {"B", "Z"} -> @scissors + @win
+      {"C", "Z"} -> @rock + @win
     end
-  end
-
-  def score([them, me]) do
-    mine =
-      case me do
-        "X" -> 1
-        "Y" -> 2
-        "Z" -> 3
-      end
-
-    outcome =
-      case rps([them, me]) do
-        :win -> 6
-        :tie -> 3
-        :loss -> 0
-      end
-
-    mine + outcome
   end
 end
