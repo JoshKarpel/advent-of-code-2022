@@ -4,32 +4,37 @@ defmodule Day03 do
       File.stream!("data/day_03.txt")
       |> Enum.map(&String.trim(&1))
 
-    priority_sum =
+    part_1 =
       rucksacks
       |> Enum.map(&halves/1)
-      |> Enum.map(fn {l, r} ->
-        MapSet.intersection(MapSet.new(to_charlist(l)), MapSet.new(to_charlist(r)))
-      end)
-      |> Enum.map(&List.first(MapSet.to_list(&1)))
+      |> Enum.map(&common_character/1)
       |> Enum.map(&priority/1)
       |> Enum.sum()
 
-    badge_sum =
+    part_2 =
       rucksacks
       |> Enum.chunk_every(3)
-      |> IO.inspect()
-      |> Enum.map(fn sacks -> Enum.map(sacks, &MapSet.new(to_charlist(&1))) end)
-      |> IO.inspect()
-      |> Enum.map(fn sacks -> Enum.reduce(sacks, &MapSet.intersection/2) end)
-      |> Enum.map(&List.first(MapSet.to_list(&1)))
+      |> Enum.map(&common_character/1)
       |> Enum.map(&priority/1)
       |> Enum.sum()
 
-    {priority_sum, badge_sum}
+    {part_1, part_2}
   end
 
   def halves(s) do
-    String.split_at(s, div(String.length(s), 2))
+    Tuple.to_list(String.split_at(s, div(String.length(s), 2)))
+  end
+
+  def charset(s) do
+    MapSet.new(to_charlist(s))
+  end
+
+  def common_character(strings) do
+    strings
+    |> Enum.map(&charset/1)
+    |> Enum.reduce(&MapSet.intersection/2)
+    |> MapSet.to_list()
+    |> List.first()
   end
 
   def priority(c) do
