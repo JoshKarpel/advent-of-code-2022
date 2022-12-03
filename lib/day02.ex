@@ -6,14 +6,14 @@ defmodule Day02 do
       |> Enum.map(&String.split(&1, " "))
       |> Enum.map(&List.to_tuple(&1))
 
-    [
+    {
       rounds
       |> Enum.map(&play/1)
       |> Enum.sum(),
       rounds
       |> Enum.map(&pick/1)
       |> Enum.sum()
-    ]
+    }
   end
 
   @win 6

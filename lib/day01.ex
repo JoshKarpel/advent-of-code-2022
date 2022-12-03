@@ -8,6 +8,6 @@ defmodule Day01 do
       cals -> [cals |> Enum.map(&String.to_integer/1) |> Enum.sum()]
     end)
     |> Enum.sort_by(& &1, :desc)
-    |> then(&[&1 |> Enum.at(0), &1 |> Enum.take(3) |> Enum.sum()])
+    |> then(&{&1 |> Enum.at(0), &1 |> Enum.take(3) |> Enum.sum()})
   end
 end

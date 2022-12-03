@@ -12,10 +12,11 @@ defmodule Advent do
   defp run(["solve", day]) do
     solvers = %{
       "1" => &Day01.solve/0,
-      "2" => &Day02.solve/0
+      "2" => &Day02.solve/0,
+      "3" => &Day03.solve/0
     }
 
-    {time, [p1, p2]} = :timer.tc(solvers[day])
+    {time, {p1, p2}} = :timer.tc(solvers[day])
 
     IO.puts("★★ Day #{day} ★★★★★")
     IO.puts("★ https://adventofcode.com/2022/day/#{day}")
