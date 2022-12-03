@@ -13,7 +13,8 @@ defmodule Advent do
     solvers = %{
       "1" => &Day01.solve/0,
       "2" => &Day02.solve/0,
-      "3" => &Day03.solve/0
+      "3" => &Day03.solve/0,
+      "4" => &Day04.solve/0
     }
 
     {time, {p1, p2}} = :timer.tc(solvers[day])
@@ -44,5 +45,18 @@ defmodule Advent do
       {:error, %HTTPoison.Error{reason: reason}} ->
         IO.inspect(reason)
     end
+  end
+end
+
+defmodule Mix.Tasks.Advent do
+  use Mix.Task
+
+  def run(args) do
+    Dotenv.load!()
+    Mix.Task.run("loadconfig")
+
+    Application.ensure_all_started(:httpoison)
+
+    Advent.main(args)
   end
 end
