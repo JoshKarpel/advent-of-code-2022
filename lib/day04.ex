@@ -6,16 +6,17 @@ defmodule Day04 do
       |> Enum.map(&Regex.run(~r/(\d+)\-(\d+),(\d+)\-(\d+)/, &1, capture: :all_but_first))
       |> Enum.map(fn nums -> Enum.map(nums, &String.to_integer/1) end)
       |> Enum.map(fn [a, b, c, d] -> {a..b, c..d} end)
-
-    {pairs
-     |> Enum.filter(fn {a, b} -> full_overlap?(a, b) end)
-     |> Enum.count(),
-     pairs
-     |> Enum.reject(fn {a, b} -> Range.disjoint?(a, b) end)
-     |> Enum.count()}
+      |> then(
+        &{&1
+         |> Enum.filter(fn {a, b} -> fully_contained?(a, b) or fully_contained?(b, a) end)
+         |> Enum.count(),
+         &1
+         |> Enum.reject(fn {a, b} -> Range.disjoint?(a, b) end)
+         |> Enum.count()}
+      )
   end
 
-  def full_overlap?(r1, r2) do
-    (r1.first >= r2.first and r1.last <= r2.last) or (r2.first >= r1.first and r2.last <= r1.last)
+  def fully_contained?(a, b) do
+    Enum.member?(a, b.first) and Enum.member?(a, b.last)
   end
 end
