@@ -10,35 +10,48 @@ defmodule Day05 do
       |> Enum.map(&parse_layer/1)
       |> Enum.reverse()
       |> initial_state
-      |> IO.inspect(label: :initial)
 
-    moves
-    |> Enum.map(&Regex.run(~r/move (\d+) from (\d+) to (\d+)/, &1, capture: :all_but_first))
-    |> Enum.map(fn i -> Enum.map(i, &String.to_integer/1) end)
-    |> Enum.reduce(
-      initial_stacks,
-      fn [num, from, to], stacks ->
-        IO.inspect({stacks, num, from, to})
+    p1 =
+      moves
+      |> Enum.map(&Regex.run(~r/move (\d+) from (\d+) to (\d+)/, &1, capture: :all_but_first))
+      |> Enum.map(fn i -> Enum.map(i, &String.to_integer/1) end)
+      |> Enum.reduce(
+        initial_stacks,
+        fn [num, from, to], stacks ->
+          Enum.reduce(1..num, stacks, fn n, acc ->
+            {new_f, new_t} =
+              case {Map.get(acc, from), Map.get(acc, to)} do
+                {[f | nf], nt} -> {nf, [f | nt]}
+              end
 
-        Enum.reduce(1..num, stacks, fn n, acc ->
-          {new_f, new_t} =
-            case {Map.get(acc, from), Map.get(acc, to)} do
-              {[f | nf], nt} -> {nf, [f | nt]}
-            end
+            acc
+            |> Map.put(to, new_t)
+            |> Map.put(from, new_f)
+          end)
+        end
+      )
+      |> Enum.map(fn {_, v} -> List.first(v) end)
+      |> Enum.join("")
+
+    p2 =
+      moves
+      |> Enum.map(&Regex.run(~r/move (\d+) from (\d+) to (\d+)/, &1, capture: :all_but_first))
+      |> Enum.map(fn i -> Enum.map(i, &String.to_integer/1) end)
+      |> Enum.reduce(
+        initial_stacks,
+        fn [num, from, to], acc ->
+          {moving, new_f} = Enum.split(Map.get(acc, from), num)
+          new_t = moving ++ Map.get(acc, to)
 
           acc
           |> Map.put(to, new_t)
           |> Map.put(from, new_f)
-        end)
-      end
-    )
-    |> IO.inspect()
-    |> Enum.map(fn {_, v} -> List.first(v) end)
-    |> IO.inspect()
-    |> Enum.join("")
-    |> IO.inspect()
+        end
+      )
+      |> Enum.map(fn {_, v} -> List.first(v) end)
+      |> Enum.join("")
 
-    {0, 0}
+    {p1, p2}
   end
 
   def parse_layer(layer) do
