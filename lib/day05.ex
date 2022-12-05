@@ -1,82 +1,78 @@
 defmodule Day05 do
   def solve do
-    [initial, _, moves] =
+    [raw_initial, _, raw_moves] =
       File.stream!("data/day_05.txt")
       |> Enum.map(&String.trim_trailing(&1))
       |> Enum.chunk_by(&(&1 == ""))
 
     initial_stacks =
-      initial
+      raw_initial
       |> Enum.map(&parse_layer/1)
       |> Enum.reverse()
       |> initial_state
 
-    p1 =
-      moves
+    moves =
+      raw_moves
       |> Enum.map(&Regex.run(~r/move (\d+) from (\d+) to (\d+)/, &1, capture: :all_but_first))
       |> Enum.map(fn i -> Enum.map(i, &String.to_integer/1) end)
+
+    p1 =
+      moves
       |> Enum.reduce(
         initial_stacks,
-        fn [num, from, to], stacks ->
-          Enum.reduce(1..num, stacks, fn n, acc ->
-            {new_f, new_t} =
-              case {Map.get(acc, from), Map.get(acc, to)} do
-                {[f | nf], nt} -> {nf, [f | nt]}
-              end
+        fn [num, from, to], outer_acc ->
+          Enum.reduce(1..num, outer_acc, fn _, inner_acc ->
+            [f | new_from] = Map.get(inner_acc, from)
+            new_to = [f | Map.get(inner_acc, to)]
 
-            acc
-            |> Map.put(to, new_t)
-            |> Map.put(from, new_f)
+            Map.merge(inner_acc, %{to => new_to, from => new_from})
           end)
         end
       )
-      |> Enum.map(fn {_, v} -> List.first(v) end)
-      |> Enum.join("")
+      |> top_crates
 
     p2 =
       moves
-      |> Enum.map(&Regex.run(~r/move (\d+) from (\d+) to (\d+)/, &1, capture: :all_but_first))
-      |> Enum.map(fn i -> Enum.map(i, &String.to_integer/1) end)
       |> Enum.reduce(
         initial_stacks,
-        fn [num, from, to], acc ->
-          {moving, new_f} = Enum.split(Map.get(acc, from), num)
-          new_t = moving ++ Map.get(acc, to)
+        fn [num, from, to], stacks ->
+          {moving, new_from} = Enum.split(Map.get(stacks, from), num)
+          new_to = moving ++ Map.get(stacks, to)
 
-          acc
-          |> Map.put(to, new_t)
-          |> Map.put(from, new_f)
+          Map.merge(stacks, %{to => new_to, from => new_from})
         end
       )
-      |> Enum.map(fn {_, v} -> List.first(v) end)
-      |> Enum.join("")
+      |> top_crates
 
     {p1, p2}
   end
 
   def parse_layer(layer) do
-    indices =
-      Regex.scan(~r/\[(\w)\]/, layer, capture: :all_but_first, return: :index)
-      |> Enum.map(&List.first/1)
-      |> Enum.map(fn {idx, _} -> {div(idx - 1, 4) + 1, String.at(layer, idx)} end)
-      |> Enum.into(%{})
+    Regex.scan(~r/\[(\w)\]/, layer, capture: :all_but_first, return: :index)
+    |> Enum.map(&List.first/1)
+    |> Enum.map(fn {idx, _} -> {div(idx - 1, 4) + 1, String.at(layer, idx)} end)
+    |> Enum.into(%{})
   end
 
   def initial_state(layers) do
-    inner_reducer = fn layer, stacks ->
-      layer
-      |> Enum.reduce(
-        stacks,
-        fn {k, v}, s ->
-          Map.update(s, k, [v], &[v | &1])
-        end
-      )
-    end
-
     layers
     |> Enum.reduce(
       %{},
-      inner_reducer
+      fn layer, stacks ->
+        layer
+        |> Enum.reduce(
+          stacks,
+          fn {k, v}, s ->
+            Map.update(s, k, [v], &[v | &1])
+          end
+        )
+      end
     )
+  end
+
+  def top_crates(stacks) do
+    stacks
+    |> Enum.map(fn {_, v} -> List.first(v) end)
+    |> Enum.join("")
   end
 end
