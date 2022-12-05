@@ -5,11 +5,37 @@ defmodule Day05 do
       |> Enum.map(&String.trim_trailing(&1))
       |> Enum.chunk_by(&(&1 == ""))
 
-    initial
-    |> Enum.map(&parse_layer/1)
+    initial_stacks =
+      initial
+      |> Enum.map(&parse_layer/1)
+      |> Enum.reverse()
+      |> initial_state
+      |> IO.inspect(label: :initial)
+
+    moves
+    |> Enum.map(&Regex.run(~r/move (\d+) from (\d+) to (\d+)/, &1, capture: :all_but_first))
+    |> Enum.map(fn i -> Enum.map(i, &String.to_integer/1) end)
+    |> Enum.reduce(
+      initial_stacks,
+      fn [num, from, to], stacks ->
+        IO.inspect({stacks, num, from, to})
+
+        Enum.reduce(1..num, stacks, fn n, acc ->
+          {new_f, new_t} =
+            case {Map.get(acc, from), Map.get(acc, to)} do
+              {[f | nf], nt} -> {nf, [f | nt]}
+            end
+
+          acc
+          |> Map.put(to, new_t)
+          |> Map.put(from, new_f)
+        end)
+      end
+    )
     |> IO.inspect()
-    |> Enum.reverse()
-    |> initial_state
+    |> Enum.map(fn {_, v} -> List.first(v) end)
+    |> IO.inspect()
+    |> Enum.join("")
     |> IO.inspect()
 
     {0, 0}
