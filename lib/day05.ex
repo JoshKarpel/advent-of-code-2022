@@ -8,8 +8,7 @@ defmodule Day05 do
     initial_stacks =
       raw_initial
       |> Enum.map(&parse_layer/1)
-      |> Enum.reverse()
-      |> initial_state
+      |> build_initial_stacks
 
     moves =
       raw_moves
@@ -54,8 +53,10 @@ defmodule Day05 do
     |> Enum.into(%{})
   end
 
-  def initial_state(layers) do
+  def build_initial_stacks(layers) do
     layers
+    # so that the top of the stack is the front of the list
+    |> Enum.reverse()
     |> Enum.reduce(
       %{},
       fn layer, stacks ->
