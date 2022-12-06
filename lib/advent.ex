@@ -15,7 +15,8 @@ defmodule Advent do
       "2" => &Day02.solve/0,
       "3" => &Day03.solve/0,
       "4" => &Day04.solve/0,
-      "5" => &Day05.solve/0
+      "5" => &Day05.solve/0,
+      "6" => &Day06.solve/0
     }
 
     {time, {p1, p2}} = :timer.tc(solvers[day])
