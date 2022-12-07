@@ -50,7 +50,7 @@ defmodule Day07 do
               new_path = [p | path]
               s = String.to_integer(size)
 
-              {new_path, Map.update(ds, new_path, s, fn existing_value -> existing_value + s end)}
+              {new_path, Map.update(ds, new_path, s, &(&1 + s))}
             end)
 
           _ ->
