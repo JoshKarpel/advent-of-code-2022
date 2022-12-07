@@ -2,7 +2,7 @@ defmodule Day06 do
   def solve do
     characters =
       File.stream!("data/day_06.txt")
-      |> Enum.map(&String.trim_trailing(&1))
+      |> Enum.map(&String.trim_trailing/1)
       |> Enum.at(0)
       |> to_charlist()
 

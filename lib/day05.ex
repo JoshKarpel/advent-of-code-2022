@@ -2,7 +2,7 @@ defmodule Day05 do
   def solve do
     [raw_initial, _, raw_moves] =
       File.stream!("data/day_05.txt")
-      |> Enum.map(&String.trim_trailing(&1))
+      |> Enum.map(&String.trim_trailing/1)
       |> Enum.chunk_by(&(&1 == ""))
 
     initial_stacks =
