@@ -52,7 +52,40 @@ defmodule Day08 do
       |> MapSet.new()
       |> MapSet.size()
 
-    {visible, 0}
+    max_score =
+      heights
+      |> Enum.map(fn {{x, y}, h} ->
+        left =
+          0..x
+          |> Enum.reverse()
+          |> Enum.drop(1)
+          |> Enum.map(fn x -> heights |> Map.get({x, y}) end)
+          |> viewing_distance(h)
+
+        right =
+          x..x_max
+          |> Enum.drop(1)
+          |> Enum.map(fn x -> heights |> Map.get({x, y}) end)
+          |> viewing_distance(h)
+
+        up =
+          0..y
+          |> Enum.reverse()
+          |> Enum.drop(1)
+          |> Enum.map(fn y -> heights |> Map.get({x, y}) end)
+          |> viewing_distance(h)
+
+        down =
+          y..y_max
+          |> Enum.drop(1)
+          |> Enum.map(fn y -> heights |> Map.get({x, y}) end)
+          |> viewing_distance(h)
+
+        left * right * up * down
+      end)
+      |> Enum.max()
+
+    {visible, max_score}
   end
 
   def take_visible(enumerable, by) do
@@ -74,5 +107,16 @@ defmodule Day08 do
       end)
 
     visible
+  end
+
+  def viewing_distance(enumerable, max_h) do
+    enumerable
+    |> Enum.reduce_while(0, fn h, count ->
+      {if h < max_h do
+         :cont
+       else
+         :halt
+       end, count + 1}
+    end)
   end
 end
