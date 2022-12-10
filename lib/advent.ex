@@ -19,6 +19,7 @@ defmodule Advent do
       "6" => &Day06.solve/0,
       "7" => &Day07.solve/0,
       "8" => &Day08.solve/0,
+      "9" => &Day09.solve/0,
       "10" => &Day10.solve/0
     }
 
