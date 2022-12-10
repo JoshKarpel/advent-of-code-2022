@@ -30,7 +30,7 @@ defmodule Day09 do
 
         {_, new_tails} =
           tails
-          |> Enum.reduce({h, []}, fn next_tail, {previous_tail, acc} ->
+          |> Enum.reduce({new_h, []}, fn next_tail, {previous_tail, acc} ->
             nt = next_tail_position(previous_tail, next_tail)
             {nt, [nt | acc]}
           end)
