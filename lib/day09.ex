@@ -10,7 +10,7 @@ defmodule Day09 do
         1..d |> Enum.map(fn _ -> dir end)
       end)
 
-    {_, _, visited} =
+    {_, _, p1} =
       instructions
       |> Enum.reduce({{0, 0}, {0, 0}, MapSet.new([{0, 0}])}, fn dir, {h, t, visited} ->
         new_h = next_head_position(dir, h)
@@ -20,7 +20,25 @@ defmodule Day09 do
         {new_h, new_t, visited |> MapSet.put(new_t)}
       end)
 
-    {visited |> MapSet.size(), 0}
+    {_, _, p2} =
+      instructions
+      |> Enum.reduce({{0, 0}, 1..9 |> Enum.map(fn _ -> {0, 0} end), MapSet.new([{0, 0}])}, fn dir,
+                                                                                              {h,
+                                                                                               tails,
+                                                                                               visited} ->
+        new_h = next_head_position(dir, h)
+
+        {_, new_tails} =
+          tails
+          |> Enum.reduce({h, []}, fn next_tail, {previous_tail, acc} ->
+            nt = next_tail_position(previous_tail, next_tail)
+            {nt, [nt | acc]}
+          end)
+
+        {new_h, new_tails |> Enum.reverse(), visited |> MapSet.put(new_tails |> Enum.at(0))}
+      end)
+
+    {p1 |> MapSet.size(), p2 |> MapSet.size()}
   end
 
   def next_head_position(dir, {h_x, h_y}) do
