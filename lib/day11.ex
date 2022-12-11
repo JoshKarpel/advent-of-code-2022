@@ -5,57 +5,19 @@ defmodule Day11 do
       |> Enum.map(&String.trim/1)
       |> Enum.reject(&(&1 == ""))
       |> Enum.chunk_every(6)
-      |> IO.inspect()
       |> Enum.map(&parse_monkey/1)
       |> Map.new(fn m -> {Map.get(m, :n), m} end)
 
-    rounds = 20
-    m = monkeys |> Map.keys() |> Enum.max()
+    {monkeys |> play(20, 3) |> business, monkeys |> play(10000, 1) |> business}
+  end
 
-    final =
-      1..rounds
-      |> Enum.reduce(monkeys, fn r, round_acc ->
-        0..m
-        |> Enum.reduce(round_acc, fn monkey_number, turn_acc ->
-          IO.puts("round #{r} monkey #{monkey_number} is about to go")
-          monkey_at_turn_start = turn_acc |> Map.get(monkey_number)
-
-          turn_acc =
-            monkey_at_turn_start
-            |> Map.get(:items)
-            |> Enum.reverse()
-            |> Enum.reduce(turn_acc, fn worry, item_acc ->
-              IO.puts("  Inspect item with worry #{worry}")
-              new_worry = div(Map.get(monkey_at_turn_start, :op).(worry), 3)
-              IO.puts("  New worry is #{new_worry}")
-              test = rem(new_worry, Map.get(monkey_at_turn_start, :div)) == 0
-              target = Map.get(monkey_at_turn_start, test)
-              IO.puts("  Test is #{test}, target is monkey #{target}\n")
-
-              item_acc
-              |> Map.update!(target, fn target_monkey ->
-                target_monkey |> Map.update!(:items, fn items -> [new_worry | items] end)
-              end)
-            end)
-            |> Map.update!(monkey_number, fn monkey_that_just_went ->
-              monkey_that_just_went
-              |> Map.update!(:items, fn _ -> [] end)
-              |> Map.update!(:count, fn curr ->
-                curr + (monkey_that_just_went |> Map.get(:items) |> Enum.count())
-              end)
-            end)
-
-          turn_acc
-          |> IO.inspect(label: "after round #{r} monkey #{monkey_number}", charlists: :as_lists)
-        end)
-      end)
-      |> IO.inspect()
-
-    {final
-     |> Enum.map(fn {_, m} -> Map.get(m, :count) end)
-     |> Enum.sort_by(& &1, :desc)
-     |> Enum.take(2)
-     |> Enum.product(), 0}
+  def business(monkeys) do
+    monkeys
+    |> Map.values()
+    |> Enum.map(&Map.get(&1, :count))
+    |> Enum.sort_by(& &1, :desc)
+    |> Enum.take(2)
+    |> Enum.product()
   end
 
   def parse_monkey([raw_num, raw_starting_items, raw_operation, raw_test, raw_true, raw_false]) do
@@ -98,5 +60,43 @@ defmodule Day11 do
         |> String.to_integer(),
       count: 0
     }
+  end
+
+  def play(monkeys, rounds, reduce_by_factor) do
+    num_monkeys = monkeys |> Map.keys() |> Enum.max()
+
+    mod = monkeys |> Map.values() |> Enum.map(&Map.get(&1, :div)) |> Enum.product()
+
+    1..rounds
+    |> Enum.reduce(monkeys, fn _round_idx, round_acc ->
+      0..num_monkeys
+      |> Enum.reduce(round_acc, fn monkey_number, turn_acc ->
+        monkey_at_turn_start = turn_acc |> Map.get(monkey_number)
+
+        monkey_at_turn_start
+        |> Map.get(:items)
+        # items are held in reverse order to make throwing logic easier below
+        |> Enum.reverse()
+        |> Enum.reduce(turn_acc, fn worry, item_acc ->
+          new_worry = rem(div(Map.get(monkey_at_turn_start, :op).(worry), reduce_by_factor), mod)
+
+          test = rem(new_worry, Map.get(monkey_at_turn_start, :div)) == 0
+          target = Map.get(monkey_at_turn_start, test)
+
+          item_acc
+          |> Map.update!(target, fn target_monkey ->
+            target_monkey |> Map.update!(:items, fn items -> [new_worry | items] end)
+          end)
+        end)
+        # now we clear out the monkey's items (it just threw all of them) and increment its inspection count
+        |> Map.update!(monkey_number, fn monkey_that_just_went ->
+          monkey_that_just_went
+          |> Map.update!(:items, fn _ -> [] end)
+          |> Map.update!(:count, fn curr ->
+            curr + (monkey_that_just_went |> Map.get(:items) |> Enum.count())
+          end)
+        end)
+      end)
+    end)
   end
 end
