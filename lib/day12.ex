@@ -35,9 +35,22 @@ defmodule Day12 do
         end)
       end)
 
-    paths = shortest_paths(edges, MapSet.new([start]), %{start => 0}, MapSet.new([start]))
+    starting_points =
+      heights
+      |> Enum.filter(fn {p, h} -> h == 0 end)
+      |> Enum.map(fn {p, h} -> p end)
+      |> IO.inspect()
 
-    {paths |> Map.get(target), 0}
+    p2 =
+      starting_points
+      |> Enum.map(fn p ->
+        shortest_paths(edges, MapSet.new([p]), %{p => 0}, MapSet.new([p])) |> Map.get(target)
+      end)
+      |> IO.inspect()
+      |> Enum.min()
+
+    {shortest_paths(edges, MapSet.new([start]), %{start => 0}, MapSet.new([start]))
+     |> Map.get(target), p2}
   end
 
   @infinity 1_000_000
