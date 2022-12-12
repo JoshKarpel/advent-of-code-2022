@@ -17,7 +17,6 @@ defmodule Day12 do
           h when h >= 97 -> {start, target, heights |> Map.put({x, y}, h - 97)}
         end
       end)
-      |> IO.inspect()
 
     edges =
       heights
@@ -28,15 +27,52 @@ defmodule Day12 do
 
           case Map.get(heights, test) do
             other_h when other_h <= h + 1 ->
-              inner_acc |> Map.update({x, y}, [], fn others -> [test | others] end)
+              inner_acc |> Map.update({x, y}, [test], fn others -> [test | others] end)
 
             _ ->
               inner_acc
           end
         end)
       end)
-      |> IO.inspect()
 
-    {0, 0}
+    paths = shortest_paths(edges, MapSet.new([start]), %{start => 0}, MapSet.new([start]))
+
+    {paths |> Map.get(target), 0}
+  end
+
+  @infinity 1_000_000
+
+  def shortest_paths(edges, frontier, paths, visited) do
+    sorted_frontier =
+      frontier
+      |> Enum.sort_by(fn f -> Map.get(paths, f, @infinity) end)
+
+    case sorted_frontier do
+      [] ->
+        paths
+
+      [head | tail] ->
+        new_visited = visited |> MapSet.put(head)
+        neighbours = Map.get(edges, head, [])
+
+        new_frontier =
+          MapSet.new(tail ++ (neighbours |> Enum.reject(&Enum.member?(new_visited, &1))))
+
+        cost_to_neighbours = Map.get(paths, head) + 1
+
+        new_paths =
+          neighbours
+          |> Enum.reduce(
+            paths,
+            fn n, paths ->
+              paths
+              |> Map.update(n, cost_to_neighbours, fn prev ->
+                Enum.min([prev, cost_to_neighbours])
+              end)
+            end
+          )
+
+        shortest_paths(edges, new_frontier, new_paths, new_visited)
+    end
   end
 end
