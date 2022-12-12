@@ -37,25 +37,26 @@ defmodule Day12 do
 
     starting_points =
       heights
-      |> Enum.filter(fn {p, h} -> h == 0 end)
-      |> Enum.map(fn {p, h} -> p end)
-      |> IO.inspect()
+      |> Enum.filter(fn {_, h} -> h == 0 end)
+      |> Enum.map(fn {p, _} -> p end)
 
-    p2 =
+    paths =
       starting_points
       |> Enum.map(fn p ->
-        shortest_paths(edges, MapSet.new([p]), %{p => 0}, MapSet.new([p])) |> Map.get(target)
+        {p, shortest_paths(edges, p) |> Map.get(target)}
       end)
-      |> IO.inspect()
-      |> Enum.min()
+      |> Map.new()
 
-    {shortest_paths(edges, MapSet.new([start]), %{start => 0}, MapSet.new([start]))
-     |> Map.get(target), p2}
+    {paths |> Map.get(start), paths |> Map.values() |> Enum.min()}
   end
 
   @infinity 1_000_000
 
-  def shortest_paths(edges, frontier, paths, visited) do
+  def shortest_paths(edges, start) do
+    _shortest_paths(edges, MapSet.new([start]), %{start => 0}, MapSet.new())
+  end
+
+  def _shortest_paths(edges, frontier, paths, visited) do
     sorted_frontier =
       frontier
       |> Enum.sort_by(fn f -> Map.get(paths, f, @infinity) end)
@@ -85,7 +86,7 @@ defmodule Day12 do
             end
           )
 
-        shortest_paths(edges, new_frontier, new_paths, new_visited)
+        _shortest_paths(edges, new_frontier, new_paths, new_visited)
     end
   end
 end
