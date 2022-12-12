@@ -21,7 +21,21 @@ defmodule Advent do
       "8" => &Day08.solve/0,
       "9" => &Day09.solve/0,
       "10" => &Day10.solve/0,
-      "11" => &Day11.solve/0
+      "11" => &Day11.solve/0,
+      "12" => &Day12.solve/0,
+      "13" => &Day13.solve/0,
+      "14" => &Day14.solve/0,
+      "15" => &Day15.solve/0,
+      "16" => &Day16.solve/0,
+      "17" => &Day17.solve/0,
+      "18" => &Day18.solve/0,
+      "19" => &Day19.solve/0,
+      "20" => &Day20.solve/0,
+      "21" => &Day21.solve/0,
+      "22" => &Day22.solve/0,
+      "23" => &Day23.solve/0,
+      "24" => &Day24.solve/0,
+      "25" => &Day25.solve/0
     }
 
     {time, {p1, p2}} = :timer.tc(solvers[day])
