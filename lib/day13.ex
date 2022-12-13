@@ -1,6 +1,6 @@
 defmodule Day13 do
   def solve do
-    p1 =
+    packets =
       File.stream!("data/day_13.txt")
       |> Enum.map(&String.trim/1)
       |> Enum.chunk_by(&(&1 == ""))
@@ -12,57 +12,58 @@ defmodule Day13 do
           result
         end)
       end)
-      |> Enum.with_index(1)
-      |> Enum.filter(fn {lr, idx} ->
-        IO.puts("")
-        IO.puts(idx)
-        right_order?(lr) |> IO.inspect()
-      end)
-      #      |> IO.inspect(charlists: :as_lists)
-      |> Enum.map(fn {_, idx} -> idx end)
-      |> Enum.sum()
 
-    {p1, 0}
+    sorted =
+      [[[[2]], [[6]]] | packets]
+      |> Enum.flat_map(& &1)
+      |> Enum.sort(&right_order?/2)
+
+    {packets
+     |> Enum.with_index(1)
+     |> Enum.filter(fn {[l, r], _} ->
+       right_order?(l, r)
+     end)
+     |> Enum.map(fn {_, idx} -> idx end)
+     |> Enum.sum(),
+     (Enum.find_index(sorted, &(&1 == [[2]])) + 1) * (Enum.find_index(sorted, &(&1 == [[6]])) + 1)}
   end
 
-  def right_order?([left, right]) do
-    IO.inspect({left, right}, charlists: :as_lists)
-
+  def right_order?(left, right) do
     case {left |> List.pop_at(0), right |> List.pop_at(0)} do
       {{nil, []}, {nil, []}} ->
-        :neither |> IO.inspect(label: "both empty")
+        :neither
 
       {{nil, []}, _} ->
-        true |> IO.inspect(label: "left ran out")
+        true
 
       {_, {nil, []}} ->
-        false |> IO.inspect(label: "right ran out")
+        false
 
-      {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_integer(r) and l > r ->
-        false |> IO.inspect(label: "wrong sorted ints")
+      {{l, _}, {r, _}} when is_integer(l) and is_integer(r) and l > r ->
+        false
 
-      {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_integer(r) and l < r ->
-        true |> IO.inspect(label: "right sorted ints")
+      {{l, _}, {r, _}} when is_integer(l) and is_integer(r) and l < r ->
+        true
 
       {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_integer(r) and l == r ->
-        right_order?([rest_l, rest_r])
+        right_order?(rest_l, rest_r)
 
       {{l, rest_l}, {r, rest_r}} when is_list(l) and is_list(r) ->
-        case {right_order?([l, r]), right_order?([rest_l, rest_r])} do
+        case {right_order?(l, r), right_order?(rest_l, rest_r)} do
           {true, _} -> true
           {false, _} -> false
           {:neither, r} -> r
         end
 
       {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_list(r) ->
-        case {right_order?([[l], r]), right_order?([rest_l, rest_r])} do
+        case {right_order?([l], r), right_order?(rest_l, rest_r)} do
           {true, _} -> true
           {false, _} -> false
           {:neither, rest} -> rest
         end
 
       {{l, rest_l}, {r, rest_r}} when is_list(l) and is_integer(r) ->
-        case {right_order?([l, [r]]), right_order?([rest_l, rest_r])} do
+        case {right_order?(l, [r]), right_order?(rest_l, rest_r)} do
           {true, _} -> true
           {false, _} -> false
           {:neither, rest} -> rest
