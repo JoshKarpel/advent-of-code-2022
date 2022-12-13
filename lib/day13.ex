@@ -16,7 +16,7 @@ defmodule Day13 do
       |> Enum.filter(fn {lr, idx} ->
         IO.puts("")
         IO.puts(idx)
-        right_order?(lr)
+        right_order?(lr) |> IO.inspect()
       end)
       #      |> IO.inspect(charlists: :as_lists)
       |> Enum.map(fn {_, idx} -> idx end)
@@ -30,7 +30,7 @@ defmodule Day13 do
 
     case {left |> List.pop_at(0), right |> List.pop_at(0)} do
       {{nil, []}, {nil, []}} ->
-        true |> IO.inspect(label: "both empty")
+        :neither |> IO.inspect(label: "both empty")
 
       {{nil, []}, _} ->
         true |> IO.inspect(label: "left ran out")
@@ -44,17 +44,29 @@ defmodule Day13 do
       {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_integer(r) and l < r ->
         true |> IO.inspect(label: "right sorted ints")
 
+      {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_integer(r) and l == r ->
+        right_order?([rest_l, rest_r])
+
       {{l, rest_l}, {r, rest_r}} when is_list(l) and is_list(r) ->
-        right_order?([l, r]) and right_order?([rest_l, rest_r])
+        case {right_order?([l, r]), right_order?([rest_l, rest_r])} do
+          {true, _} -> true
+          {false, _} -> false
+          {:neither, r} -> r
+        end
 
       {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_list(r) ->
-        right_order?([[l], r]) and right_order?([rest_l, rest_r])
+        case {right_order?([[l], r]), right_order?([rest_l, rest_r])} do
+          {true, _} -> true
+          {false, _} -> false
+          {:neither, rest} -> rest
+        end
 
       {{l, rest_l}, {r, rest_r}} when is_list(l) and is_integer(r) ->
-        right_order?([l, [r]]) and right_order?([rest_l, rest_r])
-
-      {{_, rest_l}, {_, rest_r}} ->
-        right_order?([rest_l, rest_r])
+        case {right_order?([l, [r]]), right_order?([rest_l, rest_r])} do
+          {true, _} -> true
+          {false, _} -> false
+          {:neither, rest} -> rest
+        end
     end
   end
 end
