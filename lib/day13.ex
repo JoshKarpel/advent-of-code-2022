@@ -30,36 +30,36 @@ defmodule Day13 do
   end
 
   def right_order?(left, right) do
-    case {left |> List.pop_at(0), right |> List.pop_at(0)} do
-      {{nil, []}, {nil, []}} ->
+    case {left, right} do
+      {[], []} ->
         :neither
 
-      {{nil, []}, _} ->
+      {[], _} ->
         true
 
-      {_, {nil, []}} ->
+      {_, []} ->
         false
 
-      {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_integer(r) ->
+      {[l | rest_l], [r | rest_r]} when is_integer(l) and is_integer(r) ->
         cond do
           l > r -> false
           l < r -> true
           l == r -> right_order?(rest_l, rest_r)
         end
 
-      {{l, rest_l}, {r, rest_r}} when is_list(l) and is_list(r) ->
+      {[l | rest_l], [r | rest_r]} when is_list(l) and is_list(r) ->
         case right_order?(l, r) do
           :neither -> right_order?(rest_l, rest_r)
           bool -> bool
         end
 
-      {{l, rest_l}, {r, rest_r}} when is_integer(l) and is_list(r) ->
+      {[l | rest_l], [r | rest_r]} when is_integer(l) and is_list(r) ->
         case right_order?([l], r) do
           :neither -> right_order?(rest_l, rest_r)
           bool -> bool
         end
 
-      {{l, rest_l}, {r, rest_r}} when is_list(l) and is_integer(r) ->
+      {[l | rest_l], [r | rest_r]} when is_list(l) and is_integer(r) ->
         case right_order?(l, [r]) do
           :neither -> right_order?(rest_l, rest_r)
           bool -> bool
