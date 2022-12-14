@@ -25,6 +25,7 @@ defmodule Advent.MixProject do
   defp deps do
     [
       {:httpoison, "~> 1.8.2"},
+      {:jason, "~> 1.4"},
       {:dotenv, "~> 3.1.0", only: [:dev, :test]}
     ]
   end
