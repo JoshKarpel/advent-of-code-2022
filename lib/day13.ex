@@ -8,8 +8,7 @@ defmodule Day13 do
       |> Enum.map(fn pair ->
         pair
         |> Enum.map(fn packet ->
-          {result, _} = Code.eval_string(packet)
-          result
+          Jason.decode!(packet)
         end)
       end)
 
