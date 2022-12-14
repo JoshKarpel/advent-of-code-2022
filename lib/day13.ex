@@ -3,28 +3,30 @@ defmodule Day13 do
     packets =
       File.stream!("data/day_13.txt")
       |> Enum.map(&String.trim/1)
-      |> Enum.chunk_by(&(&1 == ""))
-      |> Enum.reject(&(&1 == [""]))
-      |> Enum.map(fn pair ->
-        pair
-        |> Enum.map(fn packet ->
-          Jason.decode!(packet)
-        end)
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.map(&Jason.decode!/1)
+
+    p1 =
+      packets
+      |> Enum.chunk_every(2)
+      |> Enum.with_index(1)
+      |> Enum.flat_map(fn {[l, r], idx} ->
+        case right_order?(l, r) do
+          true -> [idx]
+          false -> []
+        end
       end)
+      |> Enum.sum()
 
     sorted =
-      [[[[2]], [[6]]] | packets]
-      |> Enum.flat_map(& &1)
+      ([[[2]], [[6]]] ++ packets)
       |> Enum.sort(&right_order?/2)
 
-    {packets
-     |> Enum.with_index(1)
-     |> Enum.filter(fn {[l, r], _} ->
-       right_order?(l, r)
-     end)
-     |> Enum.map(fn {_, idx} -> idx end)
-     |> Enum.sum(),
-     (Enum.find_index(sorted, &(&1 == [[2]])) + 1) * (Enum.find_index(sorted, &(&1 == [[6]])) + 1)}
+    p2 =
+      (Enum.find_index(sorted, &(&1 == [[2]])) + 1) *
+        (Enum.find_index(sorted, &(&1 == [[6]])) + 1)
+
+    {p1, p2}
   end
 
   def right_order?(left, right) do
