@@ -4,6 +4,8 @@ defmodule Day15 do
   @lower_bound 0
   @upper_bound 20
 
+  @multiplier 4_000_000
+
   def solve do
     sensors_and_beacons =
       File.stream!("data/day_15.txt")
@@ -38,15 +40,18 @@ defmodule Day15 do
        |> Enum.map(&Enum.count(&1))
        |> Enum.sum()) - count_beacons_at_fixed_y(sensors_and_beacons, @y)
 
-    #    p2 =
-    #      @lower_bound..@upper_bound
-    #      |> Enum.map(fn y ->
-    #        IO.puts("\ny=#{y}")
-    #        outlawed_on_fixed_y_line(sensors_and_beacons, y) |> IO.inspect()
-    #      end)
-    #      |> IO.inspect()
+    p2 =
+      @lower_bound..@upper_bound
+      |> Enum.map(fn y ->
+        IO.puts("\ny=#{y}")
+        {y, outlawed_on_fixed_y_line(sensors_and_beacons, y)} |> IO.inspect()
+      end)
+      |> Enum.find_value(fn
+        {y, [a]} -> false
+        {y, [a, b]} -> {a.last + 1, y} |> IO.inspect()
+      end)
+      |> then(fn {x, y} -> x * @multiplier + y end)
 
-    p2 = 0
     {p1, p2}
   end
 
@@ -60,14 +65,11 @@ defmodule Day15 do
       dist_to_nearest_beacon = manhattan_distance(s, b)
 
       dist_to_fixed_y_line = manhattan_distance(s, {s_x, fixed_y})
-      IO.puts("")
-      IO.inspect({s, b, dist_to_nearest_beacon, dist_to_fixed_y_line})
 
       if dist_to_nearest_beacon >= dist_to_fixed_y_line do
-        remaining_dist =
-          (dist_to_nearest_beacon - dist_to_fixed_y_line) |> IO.inspect(label: "remaining dist")
+        remaining_dist = dist_to_nearest_beacon - dist_to_fixed_y_line
 
-        [(s_x - remaining_dist)..(s_x + remaining_dist)] |> IO.inspect()
+        [(s_x - remaining_dist)..(s_x + remaining_dist)]
       else
         []
       end
@@ -76,22 +78,24 @@ defmodule Day15 do
     |> IO.inspect()
     |> Enum.reduce([], fn
       next, [previous | rest] ->
-        IO.inspect({next, previous, rest})
+        #        IO.inspect({previous, next, rest}, label: "prev next rest")
         merge_adjacent_ranges(previous, next) ++ rest
 
       next, [] ->
         [next]
     end)
+    |> Enum.reverse()
   end
 
-  def merge_adjacent_ranges(a, b) do
-    # a and b must be sorted, which implies that a.first <= b.first
+  def merge_adjacent_ranges(previous, next) do
+    # previous and next must be sorted, which implies that previous.first <= next.first
     cond do
-      a.last < b.first ->
-        [b, a]
+      # add 1 because ranges are inclusive; 1..4 and 5..8 should combine to 1..8 because the first range includes 4
+      previous.last + 1 >= next.first ->
+        [previous.first..max(previous.last, next.last)]
 
-      a.last >= b.first ->
-        [a.first..max(a.last, b.last)]
+      previous.last < next.first ->
+        [next, previous]
     end
   end
 
