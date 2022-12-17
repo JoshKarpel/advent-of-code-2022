@@ -67,7 +67,7 @@ defmodule Day15 do
       next, [] ->
         [next]
     end)
-    |> Enum.reverse()
+    |> Enum.sort()
   end
 
   def merge_adjacent_ranges(previous, next) do
