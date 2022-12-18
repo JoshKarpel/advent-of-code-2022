@@ -25,7 +25,6 @@ defmodule Day16 do
 
     p1 =
       find_paths([{"AA", 0}], edges, @p1_max_minute)
-      |> IO.inspect()
       |> Enum.map(fn path -> score_path(path, flows, @p1_max_minute) end)
       |> Enum.max()
 
@@ -39,19 +38,10 @@ defmodule Day16 do
           {{me, me |> Map.keys() |> MapSet.new()}, {ele, ele |> Map.keys() |> MapSet.new()}}
         end)
       end)
-      |> Stream.with_index()
-      |> Stream.filter(fn {{{me, me_set}, {ele, ele_set}}, idx} ->
-        if rem(idx, 1_000_000) == 0 do
-          IO.puts("#{idx / num_pairs}")
-        end
-
-        MapSet.disjoint?(
-          me_set,
-          ele_set
-        )
+      |> Stream.filter(fn {{_, me_set}, {_, ele_set}} ->
+        MapSet.disjoint?(me_set, ele_set)
       end)
-      |> Stream.map(fn {{{me, _}, {ele, _}}, _} -> {me, ele} end)
-      |> Stream.map(fn {me, ele} ->
+      |> Stream.map(fn {{me, _}, {ele, _}} ->
         score_path(me, flows, @p2_max_minute) + score_path(ele, flows, @p2_max_minute)
       end)
       |> Enum.max()
