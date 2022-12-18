@@ -17,21 +17,15 @@ defmodule Day16 do
 
     flows =
       valves_flows_tunnels
-      |> Enum.map(fn {v, {f, t}} -> {v, f} end)
+      |> Enum.map(fn {v, {f, _}} -> {v, f} end)
       |> Map.new()
-      |> IO.inspect(label: "flows")
 
-    edges = valves_flows_tunnels |> collapse_edges |> IO.inspect(label: "collapsed edges")
-
-    %{"DD" => 2, "BB" => 5, "JJ" => 9, "HH" => 17, "EE" => 21, "CC" => 24}
-    |> score_path(flows)
-    |> IO.inspect(label: "test score")
+    edges = valves_flows_tunnels |> collapse_edges
 
     p1 =
       find_paths([{"AA", 0}], edges)
       |> Enum.map(fn path -> score_path(path, flows) end)
       |> Enum.max()
-      |> IO.inspect()
 
     {p1, 0}
   end
@@ -57,7 +51,7 @@ defmodule Day16 do
           new_path = [{u, new_minute} | path]
 
           cond do
-            new_minute > @minutes -> [path]
+            new_minute >= @minutes -> [path]
             true -> find_paths(new_path, edges)
           end
         end)
@@ -93,6 +87,8 @@ defmodule Day16 do
     end)
     |> Map.new()
   end
+
+  @infinity 1_000_000
 
   def shortest_paths(edges, start) do
     _shortest_paths(edges, MapSet.new([start]), %{start => 0}, MapSet.new())
