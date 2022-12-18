@@ -1,5 +1,6 @@
 defmodule Day16 do
-  @minutes 30
+  @p1_max_minute 30
+  @p2_max_minute 26
 
   def solve do
     valves_flows_tunnels =
@@ -23,14 +24,14 @@ defmodule Day16 do
     edges = valves_flows_tunnels |> collapse_edges
 
     p1 =
-      find_paths([{"AA", 0}], edges)
-      |> Enum.map(fn path -> score_path(path, flows) end)
+      find_paths([{"AA", 0}], edges, @p1_max_minute)
+      |> Enum.map(fn path -> score_path(path, flows, @p1_max_minute) end)
       |> Enum.max()
 
     {p1, 0}
   end
 
-  def find_paths([{head, minute} | rest] = path, edges) do
+  def find_paths([{head, minute} | rest] = path, edges, max_minutes) do
     visited = path |> Enum.map(fn {p, _} -> p end) |> MapSet.new()
 
     unvisited =
@@ -51,17 +52,17 @@ defmodule Day16 do
           new_path = [{u, new_minute} | path]
 
           cond do
-            new_minute >= @minutes -> [path]
-            true -> find_paths(new_path, edges)
+            new_minute >= max_minutes -> [path]
+            true -> find_paths(new_path, edges, max_minutes)
           end
         end)
     end
   end
 
-  def score_path(path, flows) do
+  def score_path(path, flows, max_minute) do
     path
     |> Enum.map(fn {valve, minute} ->
-      Map.get(flows, valve) * (@minutes - minute)
+      Map.get(flows, valve) * (max_minute - minute)
     end)
     |> Enum.sum()
   end
