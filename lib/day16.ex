@@ -21,13 +21,47 @@ defmodule Day16 do
       |> Map.new()
       |> IO.inspect(label: "flows")
 
-    paths = valves_flows_tunnels |> collapse_edges |> IO.inspect(label: "collapsed edges")
+    edges = valves_flows_tunnels |> collapse_edges |> IO.inspect(label: "collapsed edges")
 
     %{"DD" => 2, "BB" => 5, "JJ" => 9, "HH" => 17, "EE" => 21, "CC" => 24}
     |> score_path(flows)
     |> IO.inspect(label: "test score")
 
-    {0, 0}
+    p1 =
+      find_paths([{"AA", 0}], edges)
+      |> Enum.map(fn path -> score_path(path, flows) end)
+      |> Enum.max()
+      |> IO.inspect()
+
+    {p1, 0}
+  end
+
+  def find_paths([{head, minute} | rest] = path, edges) do
+    visited = path |> Enum.map(fn {p, _} -> p end) |> MapSet.new()
+
+    unvisited =
+      edges
+      |> Map.keys()
+      |> MapSet.new()
+      |> MapSet.difference(visited)
+
+    cond do
+      # still have time, but nowhere else to go
+      Enum.count(unvisited) == 0 ->
+        [path]
+
+      true ->
+        unvisited
+        |> Enum.flat_map(fn u ->
+          new_minute = minute + 1 + (edges |> Map.get(head) |> Map.get(u))
+          new_path = [{u, new_minute} | path]
+
+          cond do
+            new_minute > @minutes -> [path]
+            true -> find_paths(new_path, edges)
+          end
+        end)
+    end
   end
 
   def score_path(path, flows) do
