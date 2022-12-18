@@ -25,10 +25,38 @@ defmodule Day16 do
 
     p1 =
       find_paths([{"AA", 0}], edges, @p1_max_minute)
+      |> IO.inspect()
       |> Enum.map(fn path -> score_path(path, flows, @p1_max_minute) end)
       |> Enum.max()
 
-    {p1, 0}
+    p2_paths = find_paths([{"AA", 0}], edges, @p2_max_minute)
+
+    num_pairs = p2_paths |> Enum.count() |> then(fn x -> x ** 2 end)
+
+    p2 =
+      Stream.flat_map(p2_paths, fn me ->
+        Stream.map(p2_paths, fn ele ->
+          {{me, me |> Map.keys() |> MapSet.new()}, {ele, ele |> Map.keys() |> MapSet.new()}}
+        end)
+      end)
+      |> Stream.with_index()
+      |> Stream.filter(fn {{{me, me_set}, {ele, ele_set}}, idx} ->
+        if rem(idx, 1_000_000) == 0 do
+          IO.puts("#{idx / num_pairs}")
+        end
+
+        MapSet.disjoint?(
+          me_set,
+          ele_set
+        )
+      end)
+      |> Stream.map(fn {{{me, _}, {ele, _}}, _} -> {me, ele} end)
+      |> Stream.map(fn {me, ele} ->
+        score_path(me, flows, @p2_max_minute) + score_path(ele, flows, @p2_max_minute)
+      end)
+      |> Enum.max()
+
+    {p1, p2}
   end
 
   def find_paths([{head, minute} | rest] = path, edges, max_minutes) do
@@ -43,7 +71,7 @@ defmodule Day16 do
     cond do
       # still have time, but nowhere else to go
       Enum.count(unvisited) == 0 ->
-        [path]
+        [path |> Map.new() |> Map.drop(["AA"])]
 
       true ->
         unvisited
@@ -52,10 +80,14 @@ defmodule Day16 do
           new_path = [{u, new_minute} | path]
 
           cond do
-            new_minute >= max_minutes -> [path]
-            true -> find_paths(new_path, edges, max_minutes)
+            new_minute >= max_minutes ->
+              [path |> Map.new() |> Map.drop(["AA"])]
+
+            true ->
+              find_paths(new_path, edges, max_minutes) ++ [path |> Map.new() |> Map.drop(["AA"])]
           end
         end)
+        |> Enum.uniq()
     end
   end
 
