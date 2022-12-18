@@ -28,28 +28,32 @@ defmodule Day16 do
       |> Enum.map(fn path -> score_path(path, flows, @p1_max_minute) end)
       |> Enum.max()
 
-    p2_paths = find_paths([{"AA", 0}], edges, @p2_max_minute)
+    all_paths =
+      find_paths([{"AA", 0}], edges, @p2_max_minute)
+      |> Enum.map(fn path ->
+        {path |> Map.keys() |> MapSet.new(), score_path(path, flows, @p2_max_minute)}
+      end)
 
-    num_pairs = p2_paths |> Enum.count() |> then(fn x -> x ** 2 end)
+    num_paths = all_paths |> Enum.count()
 
     p2 =
-      Stream.flat_map(p2_paths, fn me ->
-        Stream.map(p2_paths, fn ele ->
-          {{me, me |> Map.keys() |> MapSet.new()}, {ele, ele |> Map.keys() |> MapSet.new()}}
-        end)
+      Stream.flat_map(all_paths |> Stream.with_index(), fn {me, idx} ->
+        IO.puts("#{idx} / #{num_paths} | #{idx / num_paths}")
+        Stream.map(all_paths, fn ele -> {me, ele} end)
       end)
-      |> Stream.filter(fn {{_, me_set}, {_, ele_set}} ->
-        MapSet.disjoint?(me_set, ele_set)
-      end)
-      |> Stream.map(fn {{me, _}, {ele, _}} ->
-        score_path(me, flows, @p2_max_minute) + score_path(ele, flows, @p2_max_minute)
+      |> Stream.map(fn {{me_set, me_score}, {ele_set, ele_score}} ->
+        if MapSet.disjoint?(me_set, ele_set) do
+          me_score + ele_score
+        else
+          0
+        end
       end)
       |> Enum.max()
 
     {p1, p2}
   end
 
-  def find_paths([{head, minute} | rest] = path, edges, max_minutes) do
+  def find_paths([{head, minute} | _] = path, edges, max_minutes) do
     visited = path |> Enum.map(fn {p, _} -> p end) |> MapSet.new()
 
     unvisited =
@@ -102,52 +106,12 @@ defmodule Day16 do
     has_flow
     |> Enum.map(fn v ->
       {v,
-       shortest_paths(edges, v)
+       Day12.shortest_paths(edges, v)
        |> Enum.filter(fn {target, _} ->
          Enum.member?(has_flow, target) and v != target
        end)
        |> Map.new()}
     end)
     |> Map.new()
-  end
-
-  @infinity 1_000_000
-
-  def shortest_paths(edges, start) do
-    _shortest_paths(edges, MapSet.new([start]), %{start => 0}, MapSet.new())
-  end
-
-  def _shortest_paths(edges, frontier, paths, visited) do
-    sorted_frontier =
-      frontier
-      |> Enum.sort_by(fn f -> Map.get(paths, f, @infinity) end)
-
-    case sorted_frontier do
-      [] ->
-        paths
-
-      [head | tail] ->
-        new_visited = visited |> MapSet.put(head)
-        neighbours = Map.get(edges, head, [])
-
-        new_frontier =
-          MapSet.new(tail ++ (neighbours |> Enum.reject(&Enum.member?(new_visited, &1))))
-
-        cost_to_neighbours = Map.get(paths, head) + 1
-
-        new_paths =
-          neighbours
-          |> Enum.reduce(
-            paths,
-            fn n, paths ->
-              paths
-              |> Map.update(n, cost_to_neighbours, fn prev ->
-                Enum.min([prev, cost_to_neighbours])
-              end)
-            end
-          )
-
-        _shortest_paths(edges, new_frontier, new_paths, new_visited)
-    end
   end
 end
